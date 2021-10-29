@@ -1,0 +1,50 @@
+Heroku deployment:
+- Files
+    -- needs runtime.txt file in format python-3.9.7
+    -- Procfile cannot be ProcFile or procfile
+    -- Procfile needs to be: web: gunicorn <projectname>.wsgi
+- Dependencies:
+    - pipenv needed to install django gunicorn dj_database_url whitenoise psycopg2
+    - Requirements.txt not needed if using pipenv
+    - Add the following to settings.py:
+    '''
+    import dj_database_url
+    
+    ... (add the below after 'DATABASES')
+
+    db_from_env = dj_database_url.config(conn_max_age=600)
+    DATABASES['default'].update(db_from_env)
+    '''
+
+- Config Variables:
+    -- Variables PGUSER and PGPASSWORD on Heroku need to match user/password for the specific database on pgAdmin
+    -- Remainder of variables need to be set to match .env, since these will be called by Heroku (DB_USER, DB_PASSWORD, DB_NAME, DB_PORT, DB_ENGINE, DB_HOST)
+    -- Settings.py does not need to include PORT variable 
+    -- use heroku config:set <VARIABLE>=<String with quotes> to set config variables
+
+-CLI
+    -- Set the app to workon by defining the git remote: 'heroku git:remote -a tf-pickett'
+
+
+
+Postgres:
+- User settings:
+    -- Default user is windows user (e.g. 'steph') and needs to be created as a superuser in pgAdmin
+    -- Database user and password needs to be defined in pgAdmin (right-click on "Login/Group Roles" and click "create" -> "user") 
+    -- Environment variables [DB_USER, DB_PASSWORD or whatever you name them] need to match user/password for the specific database on pgAdmin
+    -- The Postgres database host (env variable DB_HOST) NEEDS to be set to 0.0.0.0 to work with Heroku
+
+
+Django:
+- Environment Variables:
+    -- SECRET_KEY can be any 50 character string 
+    -- use pipenv to install django-environ, which needs 
+        --- "import environ"
+        --- "env = environ.Env(DEBUG=(bool, False)" to declare the env variable, and 
+        --- 'environ.Env.read_env(os.path.join(BASE_DIR, '.env'))' after BASE_DIR defined
+    -- The format for django-environ is '<VARIABLE>' = env('<ENV_VARIABLE>') in settings.py, and <ENV_VARIABLE>=<string without quotes> <separate strings by spaces>
+
+
+Python:
+- Functions:
+    -- Use 'from typing import Union' and 'Union[<a>, <b>]' (not Union(<a>, <b>)) to set either/or types for arguments
